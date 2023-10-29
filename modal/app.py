@@ -1,42 +1,52 @@
+from flask import Flask, request,jsonify
+from flask_cors import CORS
+app = Flask(__name__)
+CORS(app)
 import tensorflow as tf
-from tensorflow.keras import datasets, layers, models
-import matplotlib.pyplot as plt
+
+import cv2
+
 import numpy as np
-(X_train,y_train),(X_test,y_test) = datasets.cifar10.load_data()
-# print(X_train)
-y_train = y_train.reshape(-1,)
-y_test = y_test.reshape(-1,)
-classes = ["airplane","automobile","bird","cat","deer","dog","frog","horse","ship","truck"]
-def plot_sample(X, y, index):
-    plt.figure(figsize = (15,2))
-    plt.imshow(X[index])
-    plt.xlabel(classes[y[index]])
-    plt.show()
+from matplotlib import pyplot as plt
+from keras.models import load_model
+new_model = load_model('./modal/imageclassifier.h5')
+import requests
 
-X_train = X_train / 255.0
-X_test = X_test / 255.0
 
-cnn = models.Sequential([
-    layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', input_shape=(32, 32, 3)),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Flatten(),
-    layers.Dense(64, activation='relu'),
-    layers.Dense(10, activation='softmax')
-])
-# print(X_test[2])
-cnn.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
-# plt.imshow(X_test[3])
-# plt.show()
-cnn.fit(X_train, y_train, epochs=1)
-y_pred = cnn.predict(X_test[2].reshape(1,32,32,3))
-print(y_pred)
-y_classes = [np.argmax(element) for element in y_pred]
-plot_sample(X_train, y_train, y_classes[0])
-print(y_classes)
-# y_classes = [np.argmax(element) for element in y_pred]
+@app.route('/submit', methods=['POST'])
+def post_request_data():
+    if request.is_json:
+        data = request.get_json()
+        url = data.get('url')# Extract the 'name' field
+        if url is not None:
+            
+            response = requests.get(url)
+            if response.status_code == 200:
+                with open("downloaded_image.jpg", 'wb') as f:
+                    f.write(response.content)
+                
+            else:
+                print("Failed to download the image")
+                exit()
+            img = cv2.imread("./downloaded_image.jpg")
+            resize = tf.image.resize(img, (256,256))
+            resize = tf.image.resize(img, (256,256))
+            plt.imshow(resize.numpy().astype(int))
+            yhat=new_model.predict(np.expand_dims(resize/255, 0))
+            y_classes = [np.argmax(element) for element in yhat]
+            classname=['Arbok', 'Arcanine', 'Beedrill', 'Charizard', 'Charmeleon', 'Rhyhorn', 'Snorlax', 'Tentacruel', 'Vaporeon', 'Weedle', 'Weepinbell', 'Weezing', 'Wigglytuff', 'Zapdos']
+
+            
+            return jsonify(predicted=classname[y_classes[0]])
+    else:
+        return 'No JSON data found in the request'
+
+
+
+# import cv2
+
+# Read the downloaded image
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
