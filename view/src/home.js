@@ -5,6 +5,7 @@ import { View, Text, Image } from "react-native";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const Home = () => {
   const [image, setImage] = useState(null);
@@ -13,7 +14,7 @@ const Home = () => {
   const FindClass = () => {
     axios
       .post(
-        `http://192.168.50.164:5000/submit`,
+        `http://192.168.253.164:5000/submit`,
         {
           url: image,
         },
@@ -35,8 +36,9 @@ const Home = () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
+      allowsEditing: false,
       aspect: [4, 3],
+
       quality: 1,
     });
     console.log(result);
@@ -70,6 +72,11 @@ const Home = () => {
 
   return (
     <View className=" flex-1 justify-center items-center bg-gray-800 w-screen h-screen">
+      <View className=" relative  mb-6 w-56 h-16">
+        <Image
+          className="absolute w-full h-full"
+          source={require("../assets/pokemonText.png")}></Image>
+      </View>
       {loading ? (
         <View className="w-full h-[120vh] z-10 absolute flex justify-center items-center top-0">
           <ActivityIndicator size={"large"} />
@@ -79,7 +86,11 @@ const Home = () => {
         ""
       )}
       {image && (
-        <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
+        <Image
+          className="rounded-2xl mb-5"
+          source={{ uri: image }}
+          style={{ width: 200, height: 200 }}
+        />
       )}
       <View className="w-screen justify-around flex-row">
         <TouchableOpacity
@@ -87,25 +98,30 @@ const Home = () => {
             // alert("fasdf");
             pickImage();
           }}>
-          <Text className=" text-white">gallery</Text>
+          <Icon name="images" size={35} color={"white"}></Icon>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
             alert("camera");
             // LaunchCamera();
           }}>
-          <Text className=" text-white">camera</Text>
+          <Icon name="camera" size={35} color={"white"}></Icon>
         </TouchableOpacity>
       </View>
       <TouchableOpacity
         onPress={() => {
           image ? FindClass() : null;
         }}>
-        <Text className={`${image ? "text-red-600" : "text-green-800"} `}>
+        <Text
+          className={` text-white rounded-md mt-6 py-3 px-5 ${
+            image ? "bg-green-600 " : "bg-red-800"
+          } `}>
           predict
         </Text>
       </TouchableOpacity>
-      <Text className=" text-red-600">output : {name}</Text>
+      <Text className=" font-extrabold text-lg mt-6 text-white">
+        Name of this pokemon : {name}
+      </Text>
     </View>
   );
 };
