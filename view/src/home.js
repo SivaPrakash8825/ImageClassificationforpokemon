@@ -14,7 +14,7 @@ const Home = () => {
   const FindClass = () => {
     axios
       .post(
-        `http://192.168.253.164:5000/submit`,
+        `http://192.168.72.164:5000/submit`,
         {
           url: image,
         },
