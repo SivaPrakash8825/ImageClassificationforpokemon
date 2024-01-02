@@ -1,13 +1,14 @@
-from flask import Flask, request
-
+from flask import Flask, request,jsonify
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 import tensorflow as tf
-import os
+
 import cv2
-import imghdr
+
 import numpy as np
 from matplotlib import pyplot as plt
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 new_model = load_model('./modal/imageclassifier.h5')
 import requests
 
@@ -36,7 +37,7 @@ def post_request_data():
             classname=['Arbok', 'Arcanine', 'Beedrill', 'Charizard', 'Charmeleon', 'Rhyhorn', 'Snorlax', 'Tentacruel', 'Vaporeon', 'Weedle', 'Weepinbell', 'Weezing', 'Wigglytuff', 'Zapdos']
 
             
-            return f'Name Received: {classname[y_classes[0]]}'
+            return jsonify(predicted=classname[y_classes[0]])
     else:
         return 'No JSON data found in the request'
 
@@ -48,4 +49,4 @@ def post_request_data():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
